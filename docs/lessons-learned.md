@@ -1,3 +1,9 @@
+---
+document_type: lessons-learned
+authority_class: descriptive
+status: draft
+---
+
 # Lessons Learned
 
 This document is intentionally a living record. At the documentation stage, the entries below capture design lessons and hypotheses. Empirical lessons will be added only after the evaluator and controlled fixtures have been run.

@@ -1,3 +1,9 @@
+---
+document_type: decisions
+authority_class: decisional
+status: draft
+---
+
 # Decisions
 
 This file records current project-level decisions. Formal ADRs may be added later only when a decision needs deeper context or durable alternatives analysis.

@@ -1,3 +1,9 @@
+---
+document_type: security-design
+authority_class: descriptive
+status: draft
+---
+
 # Security Design
 
 ## Security objective

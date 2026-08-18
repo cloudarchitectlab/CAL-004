@@ -1,3 +1,9 @@
+---
+document_type: requirements
+authority_class: normative
+status: draft
+---
+
 # CAL-004 Requirements
 
 ## 1. Purpose

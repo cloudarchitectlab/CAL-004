@@ -1,3 +1,9 @@
+---
+document_type: validation
+authority_class: evidentiary
+status: draft
+---
+
 # Validation
 
 ## Purpose

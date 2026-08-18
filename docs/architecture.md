@@ -1,3 +1,9 @@
+---
+document_type: architecture
+authority_class: descriptive
+status: draft
+---
+
 # Architecture
 
 ## Overview

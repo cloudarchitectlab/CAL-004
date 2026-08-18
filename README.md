@@ -1,3 +1,9 @@
+---
+document_type: case-study
+authority_class: descriptive
+status: draft
+---
+
 # CAL-004 — AI Architecture Evaluator
 
 CAL-004 explores treating architecture itself as an input to engineering automation.

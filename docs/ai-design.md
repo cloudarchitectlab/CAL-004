@@ -1,3 +1,9 @@
+---
+document_type: ai-design
+authority_class: descriptive
+status: draft
+---
+
 # AI Design
 
 ## Design statement
