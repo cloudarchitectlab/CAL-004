@@ -1,0 +1,86 @@
+%% =============================================================================
+%% Cloud Architect Lab
+%% CAL-004
+%% =============================================================================
+%% Diagram Type: Architecture Overview
+%% Audience: Executive / Engineering
+%% Status: Template
+%% Created: 2026-08-18
+%% =============================================================================
+%% Purpose:
+%% Provide a simple, human-maintainable starting point that clearly shows
+%% architectural boundaries, resource placement, and major relationships.
+%% =============================================================================
+%% Instructions:
+%% - Replace placeholder labels and CIDRs with the current deployed state.
+%% - Remove any boundary or resource that does not apply.
+%% - Add resources only when they improve architectural understanding.
+%% - Keep colors complementary to explicit labels.
+%% - Do not add planned resources to a current as-built diagram.
+%% =============================================================================
+
+graph TB
+
+    Internet["Internet / Users"]
+    TrustedAdmin["Trusted Administrator<br/>Configured CIDR"]
+
+    subgraph Account["AWS Account"]
+
+        subgraph Region["Region: AWS_REGION"]
+
+            subgraph VPC["VPC: VPC_CIDR"]
+
+                IGW["Internet Gateway"]
+
+                subgraph AZ["Availability Zone: AVAILABILITY_ZONE"]
+
+                    subgraph PublicSubnet["Public Subnet: PUBLIC_SUBNET_CIDR"]
+
+                        PublicRT["Public Route Table<br/>VPC_CIDR → local<br/>0.0.0.0/0 → Internet Gateway"]
+
+                        PublicSG["Public Security Group<br/>Inbound: HTTP 80 from Internet<br/>Inbound: HTTPS 443 from Internet<br/>Inbound: SSH 22 from Trusted CIDR<br/>Outbound: All"]
+
+                    end
+
+                    subgraph PrivateSubnet["Private Subnet: PRIVATE_SUBNET_CIDR"]
+
+                        PrivateRT["Private Route Table<br/>VPC_CIDR → local<br/>No Internet default route"]
+
+                        PrivateSG["Private Security Group<br/>Inbound: TCP 8080 from Public Security Group<br/>Outbound: All"]
+
+                    end
+
+                end
+
+            end
+
+        end
+
+    end
+
+    Internet --> IGW
+    PublicRT -->|"0.0.0.0/0"| IGW
+
+    Internet -.->|"HTTP 80 / HTTPS 443 allowed"| PublicSG
+    TrustedAdmin -.->|"SSH 22 allowed"| PublicSG
+    PublicSG -.->|"TCP 8080 allowed"| PrivateSG
+
+    classDef account stroke:#818cf8,fill:#eef2ff
+    classDef region stroke:#818cf8,fill:#eef2ff
+    classDef vpc stroke:#2dd4bf,fill:#f0fdfa
+    classDef az stroke:#38bdf8,fill:#f0f9ff
+    classDef subnet stroke:#22d3ee,fill:#ecfeff
+    classDef route stroke:#a78bfa,fill:#faf5ff
+    classDef sg stroke:#fb923c,fill:#fff7ed
+    classDef resource stroke:#4ade80,fill:#f0fdf4
+    classDef external stroke:#f87171,fill:#fef2f2
+
+    class Account account
+    class Region region
+    class VPC vpc
+    class AZ az
+    class PublicSubnet,PrivateSubnet subnet
+    class PublicRT,PrivateRT route
+    class PublicSG,PrivateSG sg
+    class IGW resource
+    class Internet,TrustedAdmin external
