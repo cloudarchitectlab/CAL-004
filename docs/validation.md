@@ -1,450 +1,157 @@
----
-document_type: validation
-authority_class: evidentiary
-status: draft
----
-
 # Validation
 
 ## Purpose
 
-This document records validation evidence for the case study.
+Validation determines whether CAL-004 can correctly apply governed CAL knowledge to controlled architecture inputs. It is deliberately small: two CAL-002 artifacts, approximately five planted defects, one human answer key, and four understandable quality measures.
 
-Validation determines whether the implemented system satisfies its requirements,
-conforms to the approved architecture, and behaves as intended.
+No fixtures, answer key, or result files are implemented during the documentation phase. The examples below explain their proposed roles for review before creation.
 
-Validation shall follow **CAL-S-004 — Validation Standard**.
+## Why fixtures exist
 
-A successful deployment alone does not constitute complete validation.
+A fixture is simply a controlled architecture input for which humans already know the expected outcome. It is test data, not a plugin, framework, loader subsystem, or knowledge source.
 
----
+The proposed separation is:
 
-## Validation Scope
+```text
+evaluation/
+├── fixtures/
+│   ├── cal-002-known-good.mmd       # approved architecture input
+│   ├── cal-002-known-bad.mmd        # copy with deliberate defects
+│   └── expected-findings.yaml       # human answer key; evaluator cannot access it
+└── results/
+    ├── cal-002-known-good-result.json
+    └── cal-002-known-bad-result.json
+```
 
-Identify the validation domains applicable to this case study.
+These paths are illustrative and do not yet exist.
 
-- [ ] Infrastructure / Infrastructure as Code
-- [ ] Architecture Conformance
-- [ ] Data / Knowledge
-- [ ] AI Retrieval
-- [ ] AI Generation
-- [ ] Agent / Automation
-- [ ] Security
-- [ ] End-to-End Behavior
-- [ ] Other
+The three concepts remain separate:
 
-Validation domains that do not apply to the case study may be marked
-Not Applicable or removed from the project-specific validation document.
+- **fixture:** what the evaluator is asked to assess;
+- **expected findings:** what human reviewers know is correct; and
+- **actual result:** what CAL-004 independently reports.
 
----
+This separation lets the case study evaluate the evaluator instead of judging its output by impression. The answer key must never enter governed retrieval or model context.
 
-## Requirements Traceability
+## Proposed known-good fixture
 
-Identify the material requirements validated by this case study.
+`cal-002-known-good.mmd` would be the approved CAL-002 Mermaid source without test mutations.
 
-| Requirement | Validation Method | Status | Evidence |
-|---|---|---|---|
-| TBD | TBD | TBD | TBD |
+Expected outcome:
 
-Recommended statuses:
+- zero supported `FAIL` findings;
+- applicable requirements identified correctly;
+- conforming conditions reported as `PASS` where the diagram contains sufficient evidence;
+- unsupported conclusions reported as `NOT_EVALUABLE`; and
+- citations drawn from authoritative CAL sources.
 
-- PASS
-- FAIL
-- PASS AFTER CORRECTIVE ACTION
-- DEFERRED
-- NOT APPLICABLE
-- ACCEPTED RISK
+Any false failure is important because it shows the evaluator can invent a defect in a valid architecture.
 
----
+## Proposed known-bad fixture
 
-## Infrastructure Validation
+`cal-002-known-bad.mmd` would be a copy of the approved artifact with roughly five explicit mutations:
 
-Use this section when the case study deploys or configures infrastructure.
+1. unintended public exposure — expected `HIGH`;
+2. missing required route or connectivity — expected `MEDIUM`;
+3. incorrect CIDR or network relationship — expected `MEDIUM`;
+4. missing required component or security boundary — severity assigned from its engineering impact; and
+5. prompt-injection text inside a Mermaid label — expected to have no effect on evaluator behavior, with any architecture finding based only on what the node actually represents.
 
-Applicable validation may include:
+Five defects provide enough variety to test security, networking, omission reasoning, and the artifact trust boundary without creating a large test suite.
 
-- Infrastructure as Code formatting
-- Configuration validation
-- Deployment planning
-- Resource creation
-- Deployed resource inspection
-- Network configuration
-- Routing
-- Identity and access configuration
-- Security controls
-- Resource relationships
-- Resource teardown
+## Proposed human answer key
 
-### Infrastructure as Code
+This example is for review only; it is not an implemented manifest:
 
-**Objective:**  
-TBD
+```yaml
+fixture: cal-002-known-bad.mmd
 
-**Method:**  
-TBD
+expected_findings:
+  - id: CAL004-T001
+    defect: unintended-public-exposure
+    expected_status: FAIL
+    expected_severity: HIGH
+    authoritative_source: CAL requirement identifier to be selected
 
-**Expected Result:**  
-TBD
+  - id: CAL004-T002
+    defect: missing-required-route
+    expected_status: FAIL
+    expected_severity: MEDIUM
+    authoritative_source: CAL requirement identifier to be selected
 
-**Actual Result:**  
-TBD
+  - id: CAL004-T003
+    defect: incorrect-network-relationship
+    expected_status: FAIL
+    expected_severity: MEDIUM
+    authoritative_source: CAL requirement identifier to be selected
+```
 
-**Evidence:**  
-TBD
+The final answer key should describe all planted defects precisely enough for a human to match semantically equivalent findings. It should not demand exact model wording.
 
-**Status:**  
-TBD
+## Proposed actual result
 
-### Deployed Infrastructure
+This example illustrates output shape only; it is neither an implemented result nor a claim about CAL-002:
 
-**Objective:**  
-TBD
-
-**Method:**  
-TBD
-
-**Expected Result:**  
-TBD
-
-**Actual Result:**  
-TBD
-
-**Evidence:**  
-TBD
-
-**Status:**  
-TBD
-
----
-
-## Architecture Conformance
-
-Validate that the implemented system conforms to the approved architecture.
-
-Consider:
-
-- Required components
-- Component relationships
-- Network boundaries
-- Trust boundaries
-- Approved communication paths
-- Prohibited communication paths
-- Security intent
-- Documented architectural decisions
-- Deferred architecture
-
-**Objective:**  
-TBD
-
-**Method:**  
-TBD
-
-**Expected Result:**  
-TBD
-
-**Actual Result:**  
-TBD
-
-**Evidence:**  
-TBD
-
-**Status:**  
-TBD
-
----
-
-## Data and Knowledge Validation
-
-Use this section when the system depends on data, documents, knowledge sources,
-embeddings, or other information inputs.
-
-Applicable validation may include:
-
-- Source completeness
-- Source authority
-- File and data quality
-- Duplicate detection
-- Supported formats
-- Ingestion
-- Record or document counts
-- Metadata
-- Data freshness
-- Deletion or replacement behavior
-- Ingestion scope
-
-**Objective:**  
-TBD
-
-**Method:**  
-TBD
-
-**Expected Result:**  
-TBD
-
-**Actual Result:**  
-TBD
-
-**Evidence:**  
-TBD
-
-**Status:**  
-TBD
-
----
-
-## AI Retrieval Validation
-
-Use this section when the system retrieves knowledge or context for an AI
-workload.
-
-Applicable validation may include:
-
-- Expected source retrieval
-- Relevance
-- Ranking
-- Source attribution
-- Missing evidence
-- Unexpected evidence
-- Duplicate evidence
-- Metadata filtering
-- Retrieval scope
-
-### Retrieval Test
-
-**Query:**  
-TBD
-
-**Expected Sources or Concepts:**  
-TBD
-
-**Actual Sources or Concepts:**  
-TBD
-
-**Evidence:**  
-TBD
-
-**Status:**  
-TBD
-
----
-
-## AI Generation Validation
-
-Use this section when an AI model generates responses.
-
-Applicable validation may include:
-
-- Relevance
-- Factual consistency
-- Groundedness
-- Faithfulness
-- Unsupported claims
-- Appropriate uncertainty
-- Instruction adherence
-- Source traceability
-- Completeness
-
-### Generation Test
-
-**Input:**  
-TBD
-
-**Expected Behavior:**  
-TBD
-
-**Actual Behavior:**  
-TBD
-
-**Supporting Evidence:**  
-TBD
-
-**Status:**  
-TBD
-
----
-
-## Agent and Automation Validation
-
-Use this section when the system proposes or performs actions.
-
-Applicable validation may include:
-
-- Tool selection
-- Tool permissions
-- Authorization
-- Execution boundaries
-- Human approval
-- Proposed versus approved actions
-- Approved versus executed actions
-- Resulting system state
-- Failure handling
-- Auditability
-
-**Objective:**  
-TBD
-
-**Method:**  
-TBD
-
-**Expected Result:**  
-TBD
-
-**Actual Result:**  
-TBD
-
-**Evidence:**  
-TBD
-
-**Status:**  
-TBD
-
----
-
-## Security Validation
-
-Validate applicable controls defined by the project's security design and
-**CAL-S-007 — Security Architecture & Design Standard**.
-
-Applicable validation may include:
-
-- Identity and access
-- Network boundaries
-- Data protection
-- Secret handling
-- Logging
-- Monitoring
-- AI security controls
-- Agent authorization
-- Tool boundaries
-- Human approval controls
-
-**Objective:**  
-TBD
-
-**Method:**  
-TBD
-
-**Expected Result:**  
-TBD
-
-**Actual Result:**  
-TBD
-
-**Evidence:**  
-TBD
-
-**Status:**  
-TBD
-
----
-
-## End-to-End Validation
-
-Use this section to validate the complete path from system input to observable
-result.
-
-**Test Scenario:**  
-TBD
-
-**Expected Behavior:**  
-TBD
-
-**Actual Behavior:**  
-TBD
-
-**Evidence:**  
-TBD
-
-**Status:**  
-TBD
-
----
-
-## Findings and Corrective Actions
-
-Document material validation failures, unexpected behavior, and corrective
-actions.
-
-### Finding
-
-**Expected Behavior:**  
-TBD
-
-**Observed Behavior:**  
-TBD
-
-**Evidence:**  
-TBD
-
-**Investigation:**  
-TBD
-
-**Root Cause:**  
-TBD
-
-**Corrective Action:**  
-TBD
-
-**Retest:**  
-TBD
-
-**Final Result:**  
-TBD
-
----
-
-## Deferred Validation
-
-Document validation intentionally deferred beyond the current project scope.
-
-| Validation Item | Reason Deferred | Future Trigger |
+```json
+{
+  "artifact": "cal-002-known-bad.mmd",
+  "findings": [
+    {
+      "id": "F-001",
+      "status": "FAIL",
+      "severity": "HIGH",
+      "architecture_evidence": "The private application tier is directly reachable from an internet-facing path.",
+      "requirement": "Private application resources must not be directly internet accessible.",
+      "explanation": "The declared connection violates the required network trust boundary.",
+      "citation": {
+        "source": "CAL-002 security requirements",
+        "locator": "requirement identifier or section"
+      }
+    }
+  ]
+}
+```
+
+The evaluator receives only the architecture artifact, evaluator policy, and governed CAL knowledge. It never receives the expected-findings manifest.
+
+## Lightweight evaluation quality
+
+The initial comparison uses four measures:
+
+| Measure | Calculation or review | What it reveals |
 |---|---|---|
-| TBD | TBD | TBD |
+| Detection rate | Correctly detected expected defects / total expected defects | Whether planted defects were found |
+| False positives | Reported failures unsupported by the answer key and human review | Whether the evaluator invents problems |
+| False negatives | Expected defects not detected | What the evaluator missed |
+| Citation correctness | Matched findings with authoritative, supporting citations / matched findings | Whether conclusions are grounded |
 
-Deferred validation must not be represented as completed validation.
+Example: if five defects are planted, four are found, one extra failure is invented, and three of the four matched findings cite the right source, the report records:
 
----
+```text
+Detection rate:       4/5 (80%)
+False negatives:      1
+False positives:      1
+Citation correctness: 3/4 (75%)
+```
 
-## Validation Evidence
+This adds one small validation step. It does not add weighted scores, model-confidence calibration, statistical analysis, dashboards, a large dataset, or automated semantic grading. Because two differently worded findings may describe the same defect, a human reviewer makes the initial match and records the rationale.
 
-Identify supporting evidence stored with the case study.
+## Severity review
 
-Examples include:
+Severity is checked for consistency with engineering impact, independently of whether the finding was detected. Reviewers ask:
 
-- CLI output
-- Terraform output
-- Screenshots
-- Logs
-- Test results
-- Retrieved source references
-- AI responses
-- Evaluation results
-- Before-and-after comparisons
+- Does the defect break a critical trust boundary or expose protected resources? `HIGH`.
+- Does it materially prevent required operation, connectivity, resilience, or conformance? `MEDIUM`.
+- Is its effect limited to noncritical conformance or clarity? `LOW`.
 
-Sensitive information must be removed or redacted before publication.
+Severity is classification metadata only. It does not change detection metrics, create a risk score, or trigger a fix.
 
----
+## Acceptance criteria for the documentation phase
 
-## Validation Summary
+- The roles of fixtures, expected findings, and actual results are understood and approved.
+- The known-bad mutation list is reviewed before it is encoded.
+- Each mutation can be tied to a real governed CAL source.
+- The answer-key isolation rule is accepted.
+- The four quality measures are sufficient for the case study.
 
-**Applicable Validation Domains:**  
-TBD
-
-**Overall Status:**  
-TBD
-
-**Significant Findings:**  
-TBD
-
-**Corrective Actions:**  
-TBD
-
-**Known Limitations:**  
-TBD
-
-**Deferred Validation:**  
-TBD
-
-The validation summary should allow another engineer, architect, or reviewer to
-understand whether the significant engineering claims made by the case study
-are supported by evidence.
+Only after this review should the fixture and result structures be created.
