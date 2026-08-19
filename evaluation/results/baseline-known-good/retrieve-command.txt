@@ -1,0 +1,8 @@
+aws bedrock-agent-runtime retrieve \
+  --knowledge-base-id 2MHJF4FLXN \
+  --retrieval-query "$(jq -n \
+    --rawfile text /Users/rickpond/Development/enterprise-vpc-peering/diagrams/source/architecture-overview.mmd \
+    '{text:$text}')" \
+  --retrieval-configuration '{"vectorSearchConfiguration":{"numberOfResults":10}}' \
+  --region us-east-1 \
+  --output json

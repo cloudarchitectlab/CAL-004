@@ -26,3 +26,6 @@ override.tf.json
 .vscode/
 .idea/
 *.swp
+
+# Disposable local-model comparison inputs
+evaluation/playground/

@@ -1,7 +1,7 @@
 ---
 document_type: requirements
 authority_class: normative
-status: draft
+status: completed
 ---
 
 # CAL-004 Requirements
@@ -16,13 +16,13 @@ The system shall consume Mermaid source, retrieve applicable governed requiremen
 
 Given a Mermaid diagram representing the CAL-002 AWS architecture, CAL-004 shall determine whether the architecture satisfies applicable CAL requirements and decisions.
 
-The initial validation set shall eventually contain:
+The completed validation set contains:
 
 - the approved CAL-002 architecture as the known-good baseline;
-- one copy with approximately five deliberate architectural defects as the known-bad case; and
-- a human-maintained answer key isolated from the evaluator.
+- five copies with one deliberate architectural defect each; and
+- human-maintained expected outcomes isolated from the evaluator.
 
-Fixtures and results are not part of the documentation phase and shall not be implemented until their proposed examples are reviewed.
+The defect fixtures and captured results are retained under `evaluation/`. A structured observed-state follow-up is also retained as experimental evidence.
 
 ## 3. Functional requirements
 

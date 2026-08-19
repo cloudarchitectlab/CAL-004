@@ -1,7 +1,7 @@
 ---
 document_type: security-design
 authority_class: descriptive
-status: draft
+status: completed
 ---
 
 # Security Design
@@ -41,11 +41,11 @@ The artifact cannot redefine or override a CAL requirement. Model memory is not 
 
 ### Evaluation truth
 
-The future expected-findings manifest is test truth, not evaluator knowledge. It must remain outside the retrieval corpus, evaluation prompt, and model context. Otherwise the exercise tests answer retrieval rather than architectural reasoning.
+Expected outcomes are test truth, not evaluator knowledge. They remained outside the retrieval corpus, evaluation prompt, and model context so the exercise tested architectural reasoning rather than answer retrieval.
 
 ## Read-only execution
 
-CAL-004 requires no infrastructure mutation capability. Runtime permissions, when implemented, shall be limited to the minimum required for:
+CAL-004 requires no infrastructure mutation capability. Evaluation access was limited to the functions required for:
 
 - model invocation;
 - governed-knowledge retrieval;

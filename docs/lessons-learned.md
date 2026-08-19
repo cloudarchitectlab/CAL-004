@@ -1,14 +1,14 @@
 ---
 document_type: lessons-learned
 authority_class: descriptive
-status: draft
+status: completed
 ---
 
 # Lessons Learned
 
-This document is intentionally a living record. At the documentation stage, the entries below capture design lessons and hypotheses. Empirical lessons will be added only after the evaluator and controlled fixtures have been run.
+This document records the empirical lessons from the completed known-good baseline, five controlled defect evaluations, and one structured observed-state experiment.
 
-## Current design lessons
+## Empirical lessons
 
 ### Architecture can be an engineering input
 
@@ -34,28 +34,44 @@ The fixtures folder needs no special framework. Its purpose is to hold inputs wh
 
 Two controlled artifacts and four measures—detection rate, false positives, false negatives, and citation correctness—are enough to move the case study beyond a demo prompt. A large benchmark would add more infrastructure than insight at this stage.
 
+In practice, five isolated mutations were more useful than one combined known-bad artifact because each result could be attributed to a single controlled change.
+
+### Retrieval success does not guarantee evaluation success
+
+Raw Mermaid retrieved relevant, approved CAL-002 requirements, architecture, and security material. That demonstrated that preprocessing was not required merely to achieve useful retrieval. The defect runs nevertheless produced incorrect conclusions, showing that grounded retrieval and correct architectural comparison are separate quality dimensions.
+
+### Graph reasoning is less reliable than semantic recognition
+
+The evaluator often understood the architecture vocabulary while mishandling topology. It preferred descriptive route-table text over a contradictory Mermaid edge and later reversed or reconstructed relationships that were explicitly supplied as source-label-target facts. Semantic fluency should not be mistaken for reliable graph conformance checking.
+
+### Expected state can contaminate observed state
+
+When the Private Workload Security Group was removed, the evaluator described that required control as though it were still present. The retrieved documentation correctly established what should exist, but the model projected that expected state into its account of the submitted artifact. A conformance system must preserve observed evidence independently from governing knowledge.
+
+### Absence is especially difficult
+
+The evaluator missed both a removed peering route and a removed workload security group. Detecting absence requires an explicit inventory or assertion check; it should not depend only on a language model noticing that a required fact never appeared in a long artifact.
+
+### Prompt-injection correlation is not causation
+
+The prompt-injection fixture reused the public-exposure mutation and added instructions to return only passes. The evaluator then missed the defect, whereas a prior non-injected run detected the core exposure. This is a meaningful security test failure, but a single nondeterministic comparison cannot prove the injected text caused the changed result. The evidence supports caution and further controlled testing, not a stronger causal claim.
+
+### Structured observed state improves clarity, not determinism
+
+The follow-up extractor preserved the defective `PatientIGW → PHINACL` relationship explicitly. The evaluator still returned a false negative and reconstructed a compliant path that was not present in the structured input. Separating extraction from judgment reduced Mermaid parsing ambiguity but did not guarantee semantic separation between observed and expected state.
+
+### Deterministic facts need deterministic checks
+
+Components, properties, graph edges, and required-absence or required-presence assertions are often machine-checkable. Those facts should use deterministic comparison where practical. Language models remain valuable for interpreting requirements, handling conditions that genuinely require semantic judgment, explaining results, and producing reviewable citations.
+
 ### Security can be demonstrated inside the core use case
 
 An instruction-like Mermaid label tests whether the artifact trust boundary holds. Answer-key isolation tests knowledge separation. Read-only permissions test the evaluator boundary. These controls strengthen the architecture story without turning CAL-004 into a separate security project.
 
-## Questions to answer during implementation
+## Questions carried forward
 
-- What minimum Mermaid parsing is required to preserve useful architectural evidence?
-- How reliably does retrieval return the authoritative source rather than a merely similar descriptive source?
+- What deterministic graph and assertion model is small enough to remain useful without becoming a generalized policy engine?
+- Which architectural conditions genuinely require semantic judgment after deterministic facts are established?
 - What citation locator is both stable and easy for a reviewer to resolve?
-- When do two differently worded findings count as the same planted defect?
-- Which properties of CAL-002 are visible in the diagram, and which must correctly remain `NOT_EVALUABLE`?
-- Does the prompt-injection fixture leave evaluation behavior unchanged?
-
-## Deferred lessons
-
-The following claims require evidence and should not be written as conclusions yet:
-
-- actual known-good false-positive behavior;
-- actual known-bad detection rate;
-- actual citation correctness;
-- model sensitivity to Mermaid syntax and labeling;
-- operational cost, latency, and repeatability; and
-- whether the severity rubric needs refinement.
-
-These will be recorded after fixture review, implementation, and repeatable evaluation runs.
+- How should repeated controls distinguish prompt-injection effects from ordinary model nondeterminism?
+- How should CAL-005 consume a validated finding without inheriting an evaluator's unsupported assumptions?

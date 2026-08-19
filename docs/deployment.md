@@ -1,41 +1,19 @@
 ---
 document_type: deployment
 authority_class: descriptive
-status: draft
+status: completed
 ---
 
 # Deployment
 
-## Prerequisites
+CAL-004 did not deploy new infrastructure. It reused the existing CAL-003 Amazon Bedrock Knowledge Base and an available Claude Haiku 4.5 inference profile to perform read-only evaluation experiments.
 
-List the software, accounts, credentials, permissions, and configuration required before deployment.
+## Operational boundary
 
-## Deployment Steps
+- No Terraform or cloud-resource deployment was required.
+- The evaluator used Bedrock `Retrieve` and `RetrieveAndGenerate` operations in `us-east-1`.
+- Architecture artifacts were treated as untrusted, read-only inputs.
+- Results were written only to local evaluation records.
+- CAL-004 had no path to modify architecture, repositories, Terraform, or cloud resources.
 
-1. Prepare the local environment.
-2. Review and configure project variables.
-3. Initialize Terraform.
-4. Review the execution plan.
-5. Deploy the infrastructure.
-
-## Terraform Commands
-
-```bash
-terraform init
-terraform fmt -check
-terraform validate
-terraform plan
-terraform apply
-```
-
-## Cleanup
-
-Destroy disposable lab resources when validation is complete:
-
-```bash
-terraform destroy
-```
-
-## Notes
-
-Document deployment observations, troubleshooting steps, timing considerations, or anything another engineer should know when reproducing the deployment.
+Exact model, Knowledge Base, session, input, and capture details are recorded with the applicable runs under `evaluation/results/`.
