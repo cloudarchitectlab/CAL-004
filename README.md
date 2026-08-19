@@ -20,7 +20,7 @@ The completed case study used the approved CAL-002 Mermaid architecture as a kno
 
 ## Scope
 
-The first implementation is intentionally narrow:
+The implementation is intentionally narrow:
 
 - Mermaid (`.mmd`) source is the only architecture input.
 - Governed CAL documents are the source of requirements and decisions.
@@ -51,11 +51,13 @@ Each applicable condition is reported as:
 - `FAIL` — sufficient evidence shows a violation.
 - `NOT_EVALUABLE` — the artifact or governed sources do not provide enough evidence.
 
-Severity expresses the engineering impact of a finding, not model confidence and not an instruction to remediate. CAL-004 uses only `LOW`, `MEDIUM`, and `HIGH` classification metadata.
+Severity expresses the engineering impact of a finding, not model confidence and not an instruction to remediate. CAL-004 uses only `LOW`, `MEDIUM`, and `HIGH` classifications.
 
 ## Validation approach
 
-The completed validation evidence is documented in [docs/validation.md](docs/validation.md). In brief:
+The completed validation evidence is documented in [docs/validation.md](docs/validation.md).
+
+In brief:
 
 - the known-good Mermaid file establishes the approved baseline;
 - five copies each contain one deliberate defect;
@@ -63,9 +65,17 @@ The completed validation evidence is documented in [docs/validation.md](docs/val
 - captured output is compared with the controlled mutation and governed CAL sources; and
 - a structured observed-state experiment tests whether separating extraction from judgment improves reliability.
 
-The evaluator retrieved relevant authoritative knowledge and produced a clean known-good baseline, but it was not reliable as a conformance engine. Across the defect suite it produced false negatives, confused descriptive text with graph relationships, reconstructed required components that were absent from the artifact, and inconsistently followed the output contract. The prompt-injection run correlated with a changed result, but the single run does not establish causation.
+The evaluator retrieved relevant authoritative knowledge and produced a clean known-good baseline, but it was not reliable as a deterministic conformance engine.
 
-The structured observed-state experiment preserved the tested graph defect explicitly and still produced a false negative. The resulting design boundary is practical: use deterministic checks for deterministic architecture facts where possible, and use language models for semantic interpretation, judgment, citations, and explanation under human review.
+Across the defect suite it produced false negatives, confused descriptive text with graph relationships, reconstructed required components that were absent from the artifact, and inconsistently followed the requested output contract.
+
+The prompt-injection run correlated with a changed result, but the single run does not establish causation.
+
+The structured observed-state experiment preserved the tested graph defect explicitly and still produced a false negative.
+
+The resulting design boundary is practical:
+
+> Use deterministic checks for deterministic architecture facts where possible, and use language models for semantic interpretation, judgment, citations, and explanation under human review.
 
 ## Documentation
 
@@ -79,4 +89,8 @@ The structured observed-state experiment preserved the tested graph defect expli
 
 ## Roadmap boundary
 
-CAL-003 asks whether AI can find and understand governed CAL knowledge. CAL-004 asks whether AI can apply that knowledge to an architecture artifact. Recommendations belong to CAL-005; Terraform generation and deployment remain later concerns.
+CAL-004 ends at evaluation:
+
+> Determine what is wrong, why it is wrong, and which authoritative evidence supports that conclusion.
+
+Recommendations and proposed architecture or code changes are intentionally deferred to **CAL-005 — Architecture / Code Recommendations**.
