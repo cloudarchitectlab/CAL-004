@@ -1,0 +1,235 @@
+{
+    "retrievalResults": [
+        {
+            "content": {
+                "text": "Approved outbound traffic from the Shared Services private subnet uses the Shared Services NAT Gateway for operating system patches, software updates, approved package repositories, and authorized external services. ## Patient Platform Environment The Patient Platform VPC also contains a public subnet and a private subnet. The public subnet supports two controlled functions: - A Public Web Endpoint that receives approved public application traffic - A NAT Gateway that provides outbound internet access for private PHI workloads The specific AWS service used to implement the Public Web Endpoint has not yet been selected. The architecture intentionally models the stable requirement before selecting an Application Load Balancer, Network Load Balancer, API Gateway, CloudFront distribution, or another AWS-native delivery service. The private PHI subnet contains application compute that processes or stores PHI. These workloads do not receive public IP addresses and do not have a direct route to an Internet Gateway. ## Private Inter-VPC Connectivity AWS VPC Peering provides private IP connectivity between the Shared Services and Patient Platform VPCs. The current architecture routes only the approved private subnet CIDRs across the peering connection. The primary approved cross-VPC path is: ```text Shared Services Management Compute → Shared Services private routing and security controls → VPC Peering Connection → Patient Platform private routing and security controls → Private PHI Application Compute ``` VPC peering provides network reachability but does not independently authorize traffic.",
+                "type": "TEXT"
+            },
+            "location": {
+                "s3Location": {
+                    "uri": "s3://cal-003-ai-knowledge-assistant-knowledge-4c546b83/knowledge/CAL-002/docs/architecture.md"
+                },
+                "type": "S3"
+            },
+            "metadata": {
+                "case_study": "CAL-002",
+                "domain": "architecture",
+                "x-amz-bedrock-kb-data-source-id": "CIPAGFBPAH",
+                "x-amz-bedrock-kb-source-file-modality": "TEXT",
+                "authority_class": "descriptive",
+                "x-amz-bedrock-kb-chunk-id": "a6ce5334-f56a-4951-8dd0-8fd2202d54f9",
+                "status": "approved",
+                "document_type": "architecture"
+            },
+            "score": 0.8862704932689667
+        },
+        {
+            "content": {
+                "text": "The current phase establishes the VPCs, subnets, routing, NAT egress, VPC peering, and workload Security Group controls. Custom Network ACLs will be implemented and validated as a separate network boundary-protection milestone. ### Shared Services Public Subnet NACL Policy intent: - Deny public management ingress. - Deny public SSH. - Deny public RDP. - Allow traffic required by the Shared Services NAT Gateway. - Allow required return traffic. - Allow approved outbound internet traffic. - Avoid permitting public application ingress. ### Shared Services Private Subnet NACL Policy intent: - Allow approved management traffic toward Patient Platform private workloads. - Allow required response traffic from Patient Platform private workloads. - Allow approved outbound update and service traffic through the Shared Services NAT Gateway. - Deny unsolicited internet-sourced inbound traffic. - Deny unnecessary cross-VPC traffic. ### Patient Platform Public Subnet NACL Policy intent: - Allow approved HTTP and HTTPS ingress for the Public Web Endpoint. - Allow required response traffic. - Deny public SSH. - Deny public RDP. - Allow traffic required by the Patient Platform NAT Gateway. - Allow approved communication from the Public Web Endpoint toward private application workloads. ### Private PHI Subnet NACL The Patient Platform private subnet contains workloads that represent systems processing or storing protected health information. A dedicated Network ACL is included in the approved architecture to provide an additional subnet-level security boundary.",
+                "type": "TEXT"
+            },
+            "location": {
+                "s3Location": {
+                    "uri": "s3://cal-003-ai-knowledge-assistant-knowledge-4c546b83/knowledge/CAL-002/docs/security-design.md"
+                },
+                "type": "S3"
+            },
+            "metadata": {
+                "case_study": "CAL-002",
+                "x-amz-bedrock-kb-data-source-id": "CIPAGFBPAH",
+                "domain": "security",
+                "x-amz-bedrock-kb-source-file-modality": "TEXT",
+                "authority_class": "descriptive",
+                "x-amz-bedrock-kb-chunk-id": "a1746060-f150-4033-9279-388b09ff834b",
+                "document_type": "security_design",
+                "status": "approved"
+            },
+            "score": 0.8797626495361328
+        },
+        {
+            "content": {
+                "text": "The sequence communicates layered control responsibility and does not imply that Route Tables, Network ACLs, or Security Groups are physical forwarding appliances. ## Private Management Traffic ```text Shared Services Management Compute → Management Security Group → Shared Services private-subnet Network ACL policy → Shared Services private Route Table → VPC Peering Connection → Patient Platform private Route Table → Private PHI subnet Network ACL policy → Private Workload Security Group → PHI Application Compute ``` The connection uses private IP addressing. Approved management access also requires operating system authentication, identity authorization, and management-tool policy. ## Shared Services Outbound Egress ```text Shared Services Private Workload → Management Security Group egress policy → Shared Services private-subnet Network ACL policy → Shared Services private default route → Shared Services NAT Gateway → Shared Services public-subnet Network ACL policy → Shared Services Internet Gateway → Approved internet destination ``` The internet cannot initiate a new session directly to the originating private workload through the NAT Gateway. ## Patient Platform Outbound Egress ```text Private PHI Application Compute → Private Workload Security Group egress policy → Private PHI subnet Network ACL policy → Patient Platform private default route → Patient Platform NAT Gateway → Patient Platform public-subnet Network ACL policy → Patient Platform Internet Gateway → Approved internet destination ``` Outbound access must be restricted to required services and destinations where practical. --- # Identity and Administrative Access The network design alone does not provide administrative authorization.",
+                "type": "TEXT"
+            },
+            "location": {
+                "s3Location": {
+                    "uri": "s3://cal-003-ai-knowledge-assistant-knowledge-4c546b83/knowledge/CAL-002/docs/security-design.md"
+                },
+                "type": "S3"
+            },
+            "metadata": {
+                "case_study": "CAL-002",
+                "x-amz-bedrock-kb-data-source-id": "CIPAGFBPAH",
+                "domain": "security",
+                "x-amz-bedrock-kb-source-file-modality": "TEXT",
+                "authority_class": "descriptive",
+                "x-amz-bedrock-kb-chunk-id": "533b2a03-7b37-497f-9992-00a7b6a08e29",
+                "document_type": "security_design",
+                "status": "approved"
+            },
+            "score": 0.8791170716285706
+        },
+        {
+            "content": {
+                "text": "These workloads: - Do not receive public IP addresses. - Do not expose public SSH or RDP endpoints. - Use the Shared Services NAT Gateway for approved outbound access. - Originate approved private management traffic toward Patient Platform workloads. - Are protected by private-subnet NACL policy and the Management Security Group. ## VPC Peering Boundary The VPC peering connection permits private IP connectivity between explicitly routed networks. The current design routes only the approved private subnet CIDRs.",
+                "type": "TEXT"
+            },
+            "location": {
+                "s3Location": {
+                    "uri": "s3://cal-003-ai-knowledge-assistant-knowledge-4c546b83/knowledge/CAL-002/docs/security-design.md"
+                },
+                "type": "S3"
+            },
+            "metadata": {
+                "case_study": "CAL-002",
+                "domain": "security",
+                "x-amz-bedrock-kb-data-source-id": "CIPAGFBPAH",
+                "x-amz-bedrock-kb-source-file-modality": "TEXT",
+                "authority_class": "descriptive",
+                "x-amz-bedrock-kb-chunk-id": "9adb1ce5-979b-4e24-8e5a-1534c7ca8141",
+                "document_type": "security_design",
+                "status": "approved"
+            },
+            "score": 0.879077285528183
+        },
+        {
+            "content": {
+                "text": "- Use explicit route-table entries for local, peering, and approved internet paths. - Support future expansion to Transit Gateway, multi-account, multi-AZ, and centralized networking architectures. - Produce complete architecture, design, deployment, validation, decision, and review documentation. --- # Security Requirements - Apply defense in depth throughout the architecture. - Enforce least privilege at every network boundary. - Keep PHI workloads in private subnets. - Keep management workloads in private subnets. - Minimize public internet exposure. - Restrict management access to approved administrative systems and protocols. - Prevent direct public SSH or RDP access. - Encrypt communications in transit. - Separate public-ingress, management, and PHI workload trust boundaries. - Use Security Groups for stateful resource-level controls. - Use Network ACLs for subnet-level stateless controls where required by the design. - Support logging, auditing, and future operational monitoring. - Document accepted risks, deferred controls, and known limitations. --- # In Scope The current implementation includes: - Shared Services VPC - Patient Platform VPC - VPC Peering - Non-overlapping VPC CIDR ranges - Public and private subnets in each VPC - One Availability Zone per VPC for the current phase - Independent Internet Gateway connectivity for each VPC - One NAT Gateway and dedicated Elastic IP address in each VPC - Controlled outbound internet access for approved private workloads - Public and private route tables - Explicit VPC peering routes between approved private",
+                "type": "TEXT"
+            },
+            "location": {
+                "s3Location": {
+                    "uri": "s3://cal-003-ai-knowledge-assistant-knowledge-4c546b83/knowledge/CAL-002/docs/requirements.md"
+                },
+                "type": "S3"
+            },
+            "metadata": {
+                "case_study": "CAL-002",
+                "x-amz-bedrock-kb-data-source-id": "CIPAGFBPAH",
+                "domain": "general",
+                "x-amz-bedrock-kb-source-file-modality": "TEXT",
+                "authority_class": "normative",
+                "x-amz-bedrock-kb-chunk-id": "252cf38d-8f15-4dd5-8afd-140433a52115",
+                "document_type": "requirement",
+                "status": "approved"
+            },
+            "score": 0.8610196113586426
+        },
+        {
+            "content": {
+                "text": "The Shared Services private route table contains no direct route to the Internet Gateway. --- ## Shared Services Outbound Update Flow Approved Shared Services patching and update traffic follows this architectural path: ```text Management Compute Instance(s) Hosting Shared Services → Shared Services private subnet controls → Shared Services private route → Shared Services NAT Gateway → Shared Services public route → Shared Services Internet Gateway → Approved internet destination ``` This flow applies to approved outbound requirements for: - DNS services - Logging services - Monitoring services - Management services - Operating system updates - Software package updates - Approved external service integrations Return traffic follows the established connection back through the NAT Gateway. The internet cannot initiate a new connection directly to a private Shared Services resource. --- # Patient Platform VPC ## Purpose The Patient Platform VPC hosts the application components that receive approved public traffic and process or store protected health information. It contains: - A controlled public web endpoint - A NAT Gateway for private workload egress - Private PHI application compute - Public and private route tables - Separate subnet-level and resource-level security controls --- ## Patient Platform Public Subnet ```text CIDR: 10.20.1.0/24 Availability Zone: us-east-1a ``` The Patient Platform public subnet contains: - Public Web Endpoint - Patient Platform NAT Gateway - Elastic IP associated with the NAT Gateway The public subnet provides two distinct functions: 1. Approved public application ingress 2.",
+                "type": "TEXT"
+            },
+            "location": {
+                "s3Location": {
+                    "uri": "s3://cal-003-ai-knowledge-assistant-knowledge-4c546b83/knowledge/CAL-002/docs/network-design.md"
+                },
+                "type": "S3"
+            },
+            "metadata": {
+                "case_study": "CAL-002",
+                "x-amz-bedrock-kb-data-source-id": "CIPAGFBPAH",
+                "domain": "networking",
+                "x-amz-bedrock-kb-source-file-modality": "TEXT",
+                "authority_class": "descriptive",
+                "x-amz-bedrock-kb-chunk-id": "e82aefa0-48b4-4969-b4d7-5564124f11dc",
+                "document_type": "network_design",
+                "status": "approved"
+            },
+            "score": 0.8596334755420685
+        },
+        {
+            "content": {
+                "text": "Policy intent: - Allow approved application traffic from the public application tier. - Allow approved management traffic from Shared Services. - Allow required response traffic. - Allow approved outbound update and service traffic through the Patient Platform NAT Gateway. - Deny internet-sourced inbound traffic. - Deny unnecessary cross-VPC traffic. The Private PHI Subnet Network ACL complements, rather than replaces, the Private Workload Security Group. The controls have separate responsibilities: - Route tables establish the network path. - The Private PHI Subnet Network ACL controls traffic crossing the subnet boundary. - The Private Workload Security Group authorizes traffic to individual workload network interfaces. - The Shared Services Management Security Group identifies the approved management resources. For approved management traffic, the Network ACL permits traffic from the Shared Services private subnet CIDR (`10.10.11.0/24`) on the documented management ports. The Private Workload Security Group separately permits the same management flow from the Shared Services Management Security Group. Because Network ACLs are stateless, the implementation must explicitly permit both the initiating traffic and the required response traffic. Application, management, DNS, update, and service flows must be evaluated before the custom Network ACL is associated with the Private PHI Subnet. All traffic not explicitly permitted by the custom Network ACL is denied. #### Approved Rule Matrix The initial Private PHI Subnet Network ACL uses the following rules. ##### Inbound",
+                "type": "TEXT"
+            },
+            "location": {
+                "s3Location": {
+                    "uri": "s3://cal-003-ai-knowledge-assistant-knowledge-4c546b83/knowledge/CAL-002/docs/security-design.md"
+                },
+                "type": "S3"
+            },
+            "metadata": {
+                "case_study": "CAL-002",
+                "x-amz-bedrock-kb-data-source-id": "CIPAGFBPAH",
+                "domain": "security",
+                "x-amz-bedrock-kb-source-file-modality": "TEXT",
+                "authority_class": "descriptive",
+                "x-amz-bedrock-kb-chunk-id": "9e53fb87-4d4d-4bfe-acc0-5d66b9bbfac2",
+                "status": "approved",
+                "document_type": "security_design"
+            },
+            "score": 0.8511881530284882
+        },
+        {
+            "content": {
+                "text": "The final AWS service has not yet been selected. The endpoint must: - Accept only approved public application protocols. - Prefer HTTPS. - Use HTTP only when required for redirection to HTTPS. - Terminate or enforce approved TLS policy. - Forward only approved application traffic to private workloads. - Produce required access and security logs. - Integrate with the approved monitoring model. - Avoid exposing private PHI compute directly. The NAT Gateway is an outbound egress component and is not an inbound application endpoint. ## Patient Platform Private PHI Boundary The Private PHI Subnet contains workloads that process or store PHI. These workloads: - Do not receive public IP addresses. - Do not have a direct route to an Internet Gateway. - Accept application traffic only from the approved public application tier. - Accept management traffic only from approved Shared Services sources. - Use the Patient Platform NAT Gateway for approved outbound access. - Are protected by private-subnet NACL policy and workload-specific Security Groups. ## Shared Services Private Management Boundary The Shared Services private subnet contains management compute hosting conceptual DNS, logging, monitoring, and management services.",
+                "type": "TEXT"
+            },
+            "location": {
+                "s3Location": {
+                    "uri": "s3://cal-003-ai-knowledge-assistant-knowledge-4c546b83/knowledge/CAL-002/docs/security-design.md"
+                },
+                "type": "S3"
+            },
+            "metadata": {
+                "case_study": "CAL-002",
+                "x-amz-bedrock-kb-data-source-id": "CIPAGFBPAH",
+                "domain": "security",
+                "x-amz-bedrock-kb-source-file-modality": "TEXT",
+                "authority_class": "descriptive",
+                "x-amz-bedrock-kb-chunk-id": "9d074553-6e66-4157-8266-213687cf8170",
+                "status": "approved",
+                "document_type": "security_design"
+            },
+            "score": 0.8500952124595642
+        },
+        {
+            "content": {
+                "text": "The primary approved cross-VPC path is: ```text Shared Services Management Compute → Shared Services private routing and security controls → VPC Peering Connection → Patient Platform private routing and security controls → Private PHI Application Compute ``` VPC peering provides network reachability but does not independently authorize traffic. Communication must also be allowed by route tables, Network ACLs, Security Groups, operating system controls, identity controls, and application or management policy. ## Public Application Ingress Approved public application traffic follows this architectural path: ```text Internet → Patient Platform Internet Gateway → Patient Platform public subnet controls → Public Web Endpoint → Private PHI subnet controls → Private PHI Application Compute ``` The Public Web Endpoint is the only approved public application entry concept. Private PHI workloads are not directly addressable from the public internet. ## Controlled Outbound Egress Each VPC maintains its own Internet Gateway, public subnet, NAT Gateway, Elastic IP address, public route table, and private default route. This is required because VPC peering is non-transitive and cannot be used to route one VPC through another VPC's NAT Gateway or Internet Gateway. Inter-VPC traffic itself does not require an Internet Gateway, NAT Gateway, VPN connection, or public IP addressing.",
+                "type": "TEXT"
+            },
+            "location": {
+                "s3Location": {
+                    "uri": "s3://cal-003-ai-knowledge-assistant-knowledge-4c546b83/knowledge/CAL-002/docs/architecture.md"
+                },
+                "type": "S3"
+            },
+            "metadata": {
+                "case_study": "CAL-002",
+                "domain": "architecture",
+                "x-amz-bedrock-kb-data-source-id": "CIPAGFBPAH",
+                "x-amz-bedrock-kb-source-file-modality": "TEXT",
+                "authority_class": "descriptive",
+                "x-amz-bedrock-kb-chunk-id": "2ef4a989-541c-48c0-98b0-cd3d5798b1a9",
+                "document_type": "architecture",
+                "status": "approved"
+            },
+            "score": 0.843071848154068
+        },
+        {
+            "content": {
+                "text": "Exact rule numbers, protocols, port ranges, directionality, and ephemeral port handling will be defined during Terraform implementation. --- ## Shared Services Public Subnet NACL Policy intent: - No public application ingress - No public management ingress - No public SSH - No public RDP - Allow traffic required by the NAT Gateway - Allow required response traffic - Allow approved outbound internet traffic --- ## Shared Services Private Subnet NACL Policy intent: - Allow approved management-related traffic. - Allow approved Patient Platform traffic. - Allow required response traffic. - Allow approved outbound update and service traffic. - Deny unsolicited internet-sourced inbound traffic. --- ## Patient Platform Public Subnet NACL Policy intent: - Allow approved HTTP and HTTPS traffic. - Allow required response traffic. - Deny public SSH. - Deny public RDP. - Allow traffic required by the Patient Platform NAT Gateway. - Allow approved communication toward private application workloads. --- ## Private PHI Subnet NACL Policy intent: - Allow approved application traffic from the public application tier. - Allow approved management traffic from Shared Services. - Allow required response traffic. - Allow approved outbound update and service traffic. - Deny internet-sourced inbound traffic. - Deny unnecessary cross-VPC traffic. --- ## Security Groups ### Management Security Group The Management Security Group protects Shared Services management compute.",
+                "type": "TEXT"
+            },
+            "location": {
+                "s3Location": {
+                    "uri": "s3://cal-003-ai-knowledge-assistant-knowledge-4c546b83/knowledge/CAL-002/docs/network-design.md"
+                },
+                "type": "S3"
+            },
+            "metadata": {
+                "case_study": "CAL-002",
+                "x-amz-bedrock-kb-data-source-id": "CIPAGFBPAH",
+                "domain": "networking",
+                "x-amz-bedrock-kb-source-file-modality": "TEXT",
+                "authority_class": "descriptive",
+                "x-amz-bedrock-kb-chunk-id": "1b26d3d0-3d89-4db3-85b7-2a7b1b85becf",
+                "document_type": "network_design",
+                "status": "approved"
+            },
+            "score": 0.8429103195667267
+        }
+    ],
+    "guardrailAction": null
+}

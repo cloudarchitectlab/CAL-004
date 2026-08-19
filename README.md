@@ -1,12 +1,12 @@
 ---
 document_type: case-study
 authority_class: descriptive
-status: draft
+status: completed
 ---
 
 # CAL-004 — AI Architecture Evaluator
 
-CAL-004 explores treating architecture itself as an input to engineering automation.
+CAL-004 evaluates architecture itself as an input to engineering automation.
 
 The project evaluates a Mermaid Architecture-as-Code artifact against governed Cloud Architect Lab (CAL) standards and architectural knowledge. Building on the retrieval and knowledge-authority mechanisms established in CAL-003, it identifies architectural conformance and violations and returns structured, cited findings.
 
@@ -16,7 +16,7 @@ CAL-004 is an evaluator, not an engineer. It reports what it observes, which gov
 
 Demonstrate that an AI-assisted evaluator can apply authoritative CAL knowledge to a machine-readable engineering artifact in a repeatable, auditable way.
 
-The initial case study uses the approved CAL-002 Mermaid architecture as a known-good input and a deliberately altered copy as a known-bad input. The expected defects remain isolated from the evaluator as human-maintained test truth.
+The completed case study used the approved CAL-002 Mermaid architecture as a known-good baseline and five independently mutated copies as controlled defect inputs. It also tested a two-stage flow that extracted structured observed state before retrieval-grounded evaluation.
 
 ## Scope
 
@@ -26,7 +26,8 @@ The first implementation is intentionally narrow:
 - Governed CAL documents are the source of requirements and decisions.
 - The foundation model compares artifact evidence with retrieved CAL knowledge.
 - Output consists of structured findings with status, severity, evidence, rationale, and citations.
-- CAL-002 supplies one known-good and one known-bad validation case.
+- CAL-002 supplies one known-good baseline and five isolated defect evaluations.
+- One follow-up experiment separates observed-state extraction from generative evaluation.
 
 See [docs/requirements.md](docs/requirements.md) for the full boundary.
 
@@ -54,14 +55,17 @@ Severity expresses the engineering impact of a finding, not model confidence and
 
 ## Validation approach
 
-Before fixtures are implemented, their proposed role and example contents are documented in [docs/validation.md](docs/validation.md). In brief:
+The completed validation evidence is documented in [docs/validation.md](docs/validation.md). In brief:
 
 - the known-good Mermaid file establishes the approved baseline;
-- the known-bad copy contains about five deliberate defects;
-- a human answer key records the expected findings and is never available to the evaluator;
-- actual structured output is compared with that answer key.
+- five copies each contain one deliberate defect;
+- expected outcomes remain outside the evaluator context;
+- captured output is compared with the controlled mutation and governed CAL sources; and
+- a structured observed-state experiment tests whether separating extraction from judgment improves reliability.
 
-Evaluation quality remains lightweight: detection rate, false positives, false negatives, and citation correctness. There is no benchmark platform, dashboard, scoring model, or fixture framework.
+The evaluator retrieved relevant authoritative knowledge and produced a clean known-good baseline, but it was not reliable as a conformance engine. Across the defect suite it produced false negatives, confused descriptive text with graph relationships, reconstructed required components that were absent from the artifact, and inconsistently followed the output contract. The prompt-injection run correlated with a changed result, but the single run does not establish causation.
+
+The structured observed-state experiment preserved the tested graph defect explicitly and still produced a false negative. The resulting design boundary is practical: use deterministic checks for deterministic architecture facts where possible, and use language models for semantic interpretation, judgment, citations, and explanation under human review.
 
 ## Documentation
 

@@ -1,0 +1,8 @@
+aws bedrock-agent-runtime retrieve-and-generate \
+  --input "$(jq -n \
+    --rawfile prompt evaluation/results/defect-02-missing-private-peering-route/prompt-prefix.txt \
+    --rawfile artifact evaluation/results/defect-02-missing-private-peering-route/cal-002-missing-private-peering-route.mmd \
+    '{text:($prompt + $artifact)}')" \
+  --retrieve-and-generate-configuration '{"type":"KNOWLEDGE_BASE","knowledgeBaseConfiguration":{"knowledgeBaseId":"2MHJF4FLXN","modelArn":"arn:aws:bedrock:us-east-1:<ACCOUNT_ID>:inference-profile/us.anthropic.claude-haiku-4-5-20251001-v1:0"}}' \
+  --region us-east-1 \
+  --output json

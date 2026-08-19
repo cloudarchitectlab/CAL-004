@@ -1,0 +1,69 @@
+FAIL
+
+Severity: HIGH
+
+Architecture Evidence:
+The architecture artifact shows the Patient Platform Public Route Table with a default route (0.0.0.0/0) pointing directly to the Patient Platform Internet Gateway. The artifact also shows internet traffic flowing directly from the Internet Gateway to the Private PHI Subnet NACL and PHI Application Compute instances.
+
+Applicable Requirement:
+The authoritative documentation states that Private PHI workloads "do not receive public IP addresses and do not have a direct route to an Internet Gateway." Additionally, the security requirements explicitly mandate "Keep PHI workloads in private subnets" and the requirement to restrict access such that PHI workloads cannot receive direct inbound traffic from the internet.
+
+Explanation:
+The architecture artifact demonstrates a critical violation of the design principle that separates public-facing resources from PHI workload trust boundaries. The Private PHI Subnet (10.20.11.0/24) is shown with a direct data path from the Internet Gateway, which violates the requirement that PHI workloads remain isolated from direct internet exposure. PHI workloads should only be reachable through the controlled Public Web Endpoint in the public subnet, not directly from the internet. The correct design pattern requires that only the Public Web Endpoint (located in the Patient Platform Public Subnet) receives internet ingress traffic, and approved application traffic then flows to the Private PHI Subnet through controlled security boundaries.
+
+Additionally, the routing shown in the artifact permits unsolicited internet-sourced inbound traffic to reach PHI workloads, which violates the Network ACL policy intent stated in the documentation that specifies "No internet-sourced inbound traffic" to the Private PHI Subnet. FAIL
+
+Severity: MEDIUM
+
+Architecture Evidence:
+The architecture artifact depicts the Patient Platform Public Route Table with a route entry "0.0.0.0/0 → Internet Gateway" associated with the Patient Platform Public Subnet. This configuration permits the Patient Public Subnet to route outbound traffic directly to the Internet Gateway rather than through the Patient NAT Gateway for outbound access.
+
+Applicable Requirement:
+The authoritative documentation specifies that approved outbound traffic from private workloads must use NAT Gateway egress, and that the Patient Platform private subnet contains "private default route → Patient Platform NAT Gateway." The requirement for outbound access control states "Outbound access must be restricted to required services and destinations where practical."
+
+Explanation:
+While the Patient Platform Public Subnet routing to the Internet Gateway is necessary for inbound public application traffic and for the NAT Gateway's own outbound internet access, the artifact does not clearly distinguish between legitimate IGW routing for inbound public ingress and potential inappropriate outbound routes. The design should ensure that public subnet outbound traffic is properly controlled. However, the more significant concern is that the artifact's flow diagram suggests direct internet connectivity to the PHI subnet, which violates defense-in-depth principles requiring all outbound traffic from PHI workloads to be restricted and filtered through the NAT Gateway egress path with appropriate Network ACL controls. PASS
+
+Severity: N/A
+
+Architecture Evidence:
+The architecture artifact shows the Shared Services VPC with CIDR 10.10.0.0/16 and the Patient Platform VPC with CIDR 10.20.0.0/16. The artifact explicitly states "VPC Peering Connection — Shared Services VPC ↔ Patient Platform VPC — Only explicitly routed and authorized private traffic is permitted." The route tables show specific peering routes: Shared Services Private Route Table routes 10.20.11.0/24 to VPC Peering, and Patient Platform Private Route Table routes 10.10.11.0/24 to VPC Peering.
+
+Applicable Requirement:
+The authoritative documentation requires "Non-overlapping VPC CIDR ranges" and specifies that "The current architecture routes only the approved private subnet CIDRs across the peering connection." The documentation also notes that "VPC peering provides network reachability but does not independently authorize traffic."
+
+Explanation:
+The architecture artifact correctly implements non-overlapping CIDR ranges for the two VPCs (10.10.0.0/16 and 10.20.0.0/16), and the VPC Peering design explicitly routes only the approved private subnets across the peering connection (10.20.11.0/24 from Shared Services perspective and 10.10.11.0/24 from Patient Platform perspective). The peering connection itself does not authorize traffic; authorization is enforced through Security Groups and Network ACLs as shown in the artifact, which aligns with the documented design intent. PASS
+
+Severity: N/A
+
+Architecture Evidence:
+The architecture artifact depicts both the Shared Services VPC and Patient Platform VPC with Internet Gateways explicitly shown for each VPC. The Shared Services Public Route Table contains a route "0.0.0.0/0 → Internet Gateway" and the Patient Platform Public Route Table contains the same default route to its respective Internet Gateway. The artifact shows "Independent Internet Gateway connectivity for each VPC."
+
+Applicable Requirement:
+The authoritative documentation specifies that the in-scope implementation includes "Independent Internet Gateway connectivity for each VPC" as part of the current phase design.
+
+Explanation:
+The artifact correctly implements the requirement for independent Internet Gateway resources in each VPC, with explicit routing from public subnets to their respective IGWs. This supports the documented security architecture where each VPC maintains its own internet egress and ingress paths. PASS
+
+Severity: N/A
+
+Architecture Evidence:
+The architecture artifact shows both Shared Services and Patient Platform VPCs each containing a dedicated NAT Gateway with an associated Elastic IP address. The Shared Services NAT Gateway is shown in the public subnet (10.10.1.0/24) and the Patient Platform NAT Gateway is shown in the public subnet (10.20.1.0/24). Each NAT Gateway has an explicit "Elastic IP association" shown in the diagram. The private route tables for each VPC show default routes (0.0.0.0/0) pointing to their respective NAT Gateways.
+
+Applicable Requirement:
+The authoritative documentation specifies that the in-scope implementation includes "One NAT Gateway and dedicated Elastic IP address in each VPC" and states that NAT Gateways "Provide outbound internet access for private workloads."
+
+Explanation:
+The artifact correctly implements the requirement for a single NAT Gateway with a dedicated Elastic IP address in each VPC. The routing configuration appropriately directs private subnet outbound traffic (0.0.0.0/0 default route) through the respective NAT Gateways, enabling controlled outbound internet access for private workloads while preventing inbound internet traffic from reaching private resources. PASS
+
+Severity: N/A
+
+Architecture Evidence:
+The architecture artifact displays Security Groups for three workload categories: Management Security Group (protecting management compute in Shared Services), Public Ingress Security Group (protecting the Public Web Endpoint), and Private Workload Security Group (protecting PHI Application Compute). Each Security Group is shown with specific inbound and outbound rules documented. The artifact also shows Security Groups positioned as a layer between Network ACLs and compute resources.
+
+Applicable Requirement:
+The authoritative documentation requires "Use Security Groups for stateful resource-level controls" and specifies that "Security Groups enforce workload-level access while Network ACLs provide subnet-level filtering."
+
+Explanation:
+The artifact correctly implements Security Groups at the workload level to provide stateful traffic control. The documented inbound and outbound rules for each Security Group reflect least-privilege principles appropriate to their respective trust boundaries (management, public ingress, and private PHI workloads).

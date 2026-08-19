@@ -1,7 +1,7 @@
 ---
 document_type: ai-design
 authority_class: descriptive
-status: draft
+status: completed
 ---
 
 # AI Design
@@ -30,13 +30,17 @@ The retrieval process should prefer sources with the authority needed for the co
 
 ## Evaluation flow
 
-1. Load Mermaid source as inert data.
-2. Identify architecture elements and relationships relevant to evaluation.
-3. Retrieve governed CAL material applicable to those elements.
-4. compare requirement and artifact evidence.
+The initial implementation uses the full raw Mermaid source directly as both the Knowledge Base retrieval query and the architecture evidence supplied for evaluation. It does not first parse the diagram, split it into targeted queries, or extract architectural concepts. This is the baseline against which any later preprocessing must be justified.
+
+1. Load the complete Mermaid source as inert, untrusted data.
+2. Submit the raw source directly to governed CAL retrieval.
+3. Inspect and retain the relevant authoritative material returned for that source.
+4. Compare requirement and artifact evidence.
 5. Select `PASS`, `FAIL`, or `NOT_EVALUABLE`.
 6. Classify the engineering impact of a failure as `LOW`, `MEDIUM`, or `HIGH` using the documented rubric.
 7. Emit a structured finding with evidence, reasoning, and source citation.
+
+If validation shows that the raw query retrieves mostly irrelevant or insufficient knowledge, CAL-004 may add parsing, decomposition, or concept extraction as an evidence-based refinement. Those mechanisms are not assumed necessary and will not be introduced before the baseline results are recorded.
 
 The system should prefer `NOT_EVALUABLE` when either the architectural evidence or authoritative requirement is insufficient. It must not fill evidence gaps with assumptions from model memory.
 

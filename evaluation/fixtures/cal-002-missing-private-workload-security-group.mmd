@@ -1,0 +1,245 @@
+---
+config:
+  layout: elk
+  theme: mc
+---
+flowchart LR
+    Internet["Internet<br/>(Untrusted Network)"]
+
+    %% =========================================================
+    %% Shared Services VPC
+    %% =========================================================
+
+    subgraph SharedServicesVPC["Shared Services VPC — us-east-1<br/>10.10.0.0/16"]
+
+        SharedIGW["Shared Services<br/>Internet Gateway"]
+
+        SharedNATEIP["Shared Services NAT Elastic IP<br/>Assigned to Shared Services NAT Gateway"]
+
+        subgraph SharedAZ1b["Availability Zone: us-east-1b"]
+
+            %% -------------------------------------------------
+            %% Shared Services Public Subnet
+            %% -------------------------------------------------
+
+            subgraph SharedPublicSubnet["Shared Services Public Subnet<br/>10.10.1.0/24<br/>NAT Gateway egress only"]
+
+                SharedPublicNACL["Shared Public Subnet NACL<br/><br/>Policy Intent:<br/>No public application ingress<br/>No public SSH or RDP<br/>Allow required outbound and response traffic"]
+
+                SharedNATGateway["Shared Services NAT Gateway<br/><br/>Provides outbound access for<br/>private Shared Services resources<br/><br/>No inbound application access"]
+
+                SharedPublicNACL -->|"Subnet-level traffic policy"| SharedNATGateway
+            end
+
+            %% -------------------------------------------------
+            %% Shared Services Private Subnet
+            %% -------------------------------------------------
+
+            subgraph SharedPrivateSubnet["Shared Services Private Subnet<br/>10.10.11.0/24<br/>No direct internet route"]
+
+                SharedPrivateNACL["Shared Services Private Subnet NACL<br/><br/>Policy Intent:<br/>Allow approved Patient Platform traffic<br/>Allow approved updates and services<br/>Allow required response traffic"]
+
+                ManagementSG["Management Security Group<br/><br/>Inbound:<br/>Approved management sources and ports only<br/><br/>Outbound:<br/>Approved Patient Platform destinations<br/>Approved updates and external services"]
+
+                subgraph ManagementCompute["Management Compute Instance(s)<br/>No public IP addresses"]
+
+                    DNS["DNS Services"]
+                    Logging["Centralized Logging"]
+                    Monitoring["Monitoring Services"]
+                    Management["Management Services"]
+                end
+
+                SharedPrivateNACL -->|"Subnet-level traffic policy"| ManagementSG
+
+                ManagementSG -->|"Protects"| ManagementCompute
+            end
+        end
+
+        SharedPublicRT["Shared Services Public Route Table<br/><br/>10.10.0.0/16 → local<br/>0.0.0.0/0 → Internet Gateway"]
+
+        SharedPrivateRT["Shared Services Private Route Table<br/><br/>10.10.0.0/16 → local<br/>10.20.11.0/24 → VPC Peering<br/>0.0.0.0/0 → NAT Gateway<br/><br/>No direct route to Internet Gateway"]
+    end
+
+    %% =========================================================
+    %% Patient Platform VPC
+    %% =========================================================
+
+    subgraph PatientPlatformVPC["Patient Platform VPC — us-east-1<br/>10.20.0.0/16<br/>Processes and Stores PHI"]
+
+        PatientIGW["Patient Platform<br/>Internet Gateway"]
+
+        PatientNATEIP["Patient Platform NAT Elastic IP<br/>Assigned to Patient Platform NAT Gateway"]
+
+        subgraph PatientAZ1a["Availability Zone: us-east-1a"]
+
+            %% -------------------------------------------------
+            %% Patient Platform Public Subnet
+            %% -------------------------------------------------
+
+            subgraph PatientPublicSubnet["Patient Platform Public Subnet<br/>10.20.1.0/24<br/>Internet-facing tier"]
+
+                PatientPublicNACL["Patient Platform Public Subnet NACL<br/><br/>Policy Intent:<br/>Allow approved HTTP and HTTPS traffic<br/>Allow required response traffic<br/>No public SSH or RDP"]
+
+                PublicIngressSG["Public Ingress Security Group<br/><br/>Inbound:<br/>TCP 80 — HTTPS redirection only<br/>TCP 443 — HTTPS<br/>No SSH or RDP<br/><br/>Outbound:<br/>Approved private application destinations"]
+
+                PublicEndpoint["Public Web Endpoint<br/><br/>HTTPS application entry point<br/>HTTP redirects to HTTPS<br/><br/>AWS implementation service<br/>to be determined"]
+
+                PatientNATGateway["Patient Platform NAT Gateway<br/><br/>Provides outbound access for<br/>private PHI workloads<br/><br/>Not an inbound application endpoint"]
+
+                PatientPublicNACL -->|"Subnet-level traffic policy"| PublicIngressSG
+
+                PublicIngressSG -->|"Protects"| PublicEndpoint
+
+                PatientPublicNACL -->|"Subnet-level traffic policy"| PatientNATGateway
+            end
+
+            %% -------------------------------------------------
+            %% Private PHI Subnet
+            %% -------------------------------------------------
+
+            subgraph PrivatePHISubnet["Private PHI Subnet<br/>10.20.11.0/24<br/>Protected Health Information workloads"]
+
+                PHINACL["Private PHI Subnet NACL<br/><br/>Policy Intent:<br/>Allow approved application traffic<br/>Allow approved management traffic<br/>No internet-sourced inbound traffic<br/>Allow required update and response traffic"]
+                subgraph PHICompute["Private PHI Application Compute"]
+
+                    PHIApp1["PHI Application EC2 1<br/>No public IP"]
+
+                    PHIApp2["PHI Application EC2 2<br/>No public IP"]
+                end
+
+                PHINACL -->|"Subnet-level traffic policy"| PHICompute
+
+            end
+        end
+
+        PatientPublicRT["Patient Platform Public Route Table<br/><br/>10.20.0.0/16 → local<br/>0.0.0.0/0 → Internet Gateway"]
+
+        PatientPrivateRT["Patient Platform Private Route Table<br/><br/>10.20.0.0/16 → local<br/>10.10.11.0/24 → VPC Peering<br/>0.0.0.0/0 → NAT Gateway<br/><br/>No direct route to Internet Gateway"]
+    end
+
+    %% =========================================================
+    %% VPC Peering
+    %% =========================================================
+
+    Peering["VPC Peering Connection<br/><br/>Shared Services VPC ↔ Patient Platform VPC<br/><br/>Only explicitly routed and authorized<br/>private traffic is permitted"]
+
+    %% =========================================================
+    %% Public Application Traffic
+    %% =========================================================
+
+    Internet -->|"Approved HTTP and HTTPS traffic"| PatientIGW
+
+    PatientIGW -->|"Public application ingress"| PatientPublicNACL
+
+    PublicEndpoint -->|"Approved application traffic"| PHINACL
+
+    %% =========================================================
+    %% Private Management Traffic
+    %% =========================================================
+
+    ManagementCompute -->|"Approved private management traffic"| Peering
+
+    Peering -->|"Authorized management traffic"| PHINACL
+
+    %% =========================================================
+    %% Shared Services Outbound Traffic
+    %% =========================================================
+
+    ManagementCompute -.->|"Approved patches, updates,<br/>package repositories, and external services"| SharedNATGateway
+
+    SharedNATEIP -.->|"Elastic IP association"| SharedNATGateway
+
+    SharedNATGateway -->|"Outbound internet access"| SharedIGW
+
+    SharedIGW -->|"Outbound connections and responses"| Internet
+
+    %% =========================================================
+    %% Patient Platform Outbound Traffic
+    %% =========================================================
+
+    PHICompute -.->|"Approved patches, updates,<br/>package repositories, and external services"| PatientNATGateway
+
+    PatientNATEIP -.->|"Elastic IP association"| PatientNATGateway
+
+    PatientNATGateway -->|"Outbound internet access"| PatientIGW
+
+    PatientIGW -->|"Outbound connections and responses"| Internet
+
+    %% =========================================================
+    %% Shared Services Route Associations
+    %% =========================================================
+
+    SharedPublicSubnet -.->|"Associated route table"| SharedPublicRT
+
+    SharedPublicRT -.->|"Default route target"| SharedIGW
+
+    SharedPrivateSubnet -.->|"Associated route table"| SharedPrivateRT
+
+    SharedPrivateRT -.->|"Peer route target"| Peering
+
+    SharedPrivateRT -.->|"Default route target"| SharedNATGateway
+
+    %% =========================================================
+    %% Patient Platform Route Associations
+    %% =========================================================
+
+    PatientPublicSubnet -.->|"Associated route table"| PatientPublicRT
+
+    PatientPublicRT -.->|"Default route target"| PatientIGW
+
+    PrivatePHISubnet -.->|"Associated route table"| PatientPrivateRT
+
+    PatientPrivateRT -.->|"Peer route target"| Peering
+
+    PatientPrivateRT -.->|"Default route target"| PatientNATGateway
+
+    %% =========================================================
+    %% Styles
+    %% =========================================================
+
+    classDef sharedVpc stroke:#818cf8,fill:#eef2ff
+    classDef patientVpc stroke:#2dd4bf,fill:#f0fdfa
+    classDef availabilityZone stroke:#94a3b8,fill:#f8fafc
+    classDef subnet stroke:#a78bfa,fill:#f5f3ff
+    classDef phiSubnet stroke:#f87171,fill:#fef2f2
+    classDef computeBoundary stroke:#fb923c,fill:#fff7ed
+    classDef sharedService stroke:#6366f1,fill:#eef2ff
+    classDef routeTable stroke:#22d3ee,fill:#ecfeff
+    classDef peeringConnection stroke:#e879f9,fill:#fdf4ff
+    classDef securityGroup stroke:#84cc16,fill:#f7fee7
+    classDef networkAcl stroke:#38bdf8,fill:#f0f9ff
+    classDef phiWorkload stroke:#ef4444,fill:#fef2f2
+    classDef internetBoundary stroke:#fb7185,fill:#fff1f2
+    classDef endpoint stroke:#f97316,fill:#fff7ed
+    classDef gateway stroke:#14b8a6,fill:#f0fdfa
+    classDef elasticIp stroke:#0ea5e9,fill:#f0f9ff
+
+    class SharedServicesVPC sharedVpc
+    class PatientPlatformVPC patientVpc
+
+    class SharedAZ1b,PatientAZ1a availabilityZone
+
+    class SharedPublicSubnet,SharedPrivateSubnet,PatientPublicSubnet subnet
+    class PrivatePHISubnet phiSubnet
+
+    class ManagementCompute,PHICompute computeBoundary
+
+    class DNS,Logging,Monitoring,Management sharedService
+
+    class PHIApp1,PHIApp2 phiWorkload
+
+    class PublicEndpoint endpoint
+
+    class SharedNATGateway,PatientNATGateway,SharedIGW,PatientIGW gateway
+
+    class SharedNATEIP,PatientNATEIP elasticIp
+
+    class SharedPublicRT,SharedPrivateRT,PatientPublicRT,PatientPrivateRT routeTable
+
+    class Peering peeringConnection
+
+    class PublicIngressSG,ManagementSG securityGroup
+
+    class SharedPublicNACL,SharedPrivateNACL,PatientPublicNACL,PHINACL networkAcl
+
+    class Internet internetBoundary

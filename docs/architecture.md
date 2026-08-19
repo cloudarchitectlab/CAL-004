@@ -1,7 +1,7 @@
 ---
 document_type: architecture
 authority_class: descriptive
-status: draft
+status: completed
 ---
 
 # Architecture
@@ -69,7 +69,7 @@ The diagram is logical rather than a commitment to a particular cloud deployment
 
 ### Artifact loader
 
-Accepts one Mermaid source file, validates that it can be treated as supported input, and exposes its declared elements and relationships as evidence. It does not render images, execute directives, or modify the file.
+Accepts one Mermaid source file and treats its complete raw source as the baseline retrieval and evaluation input. The baseline did not parse, decompose, or extract concepts before retrieval. A later experiment added a constrained observed-state extraction stage to test whether explicit component and relationship facts improved evaluation. The loader does not render images, execute directives, or modify the file.
 
 ### Evaluation context builder
 
@@ -89,7 +89,7 @@ Returns relevant CAL passages with source identity and authority. Retrieval rele
 
 ## Validation architecture
 
-The planned test arrangement is separate from the evaluator:
+The test arrangement remains separate from the evaluator:
 
 ```mermaid
 flowchart LR
@@ -101,15 +101,17 @@ flowchart LR
     REVIEW --> QUALITY["Detection, false positives,<br/>false negatives, citations"]
 ```
 
-The fixture and answer-key files shown here are proposed, not yet implemented. See [validation.md](validation.md) for examples and review gates.
+The completed fixture and result records preserve this separation. See [validation.md](validation.md) for the five defect evaluations and structured observed-state experiment.
 
 ## Data flow and trust
 
 1. An engineer supplies Mermaid source.
-2. The loader treats the complete artifact as untrusted data.
-3. The context builder retrieves applicable governed CAL sources.
+2. The loader treats the complete raw artifact as untrusted data and passes it directly as the retrieval query and evaluation input.
+3. The context builder retrieves applicable governed CAL sources without prior artifact parsing, decomposition, or concept extraction.
 4. The model compares evidence and requirements under evaluator policy.
 5. The formatter emits cited findings to a result destination.
 6. During validation only, a separate human process compares results with isolated expected findings.
 
 There is no data flow from findings into architecture, code generation, Terraform, Git, or cloud deployment.
+
+The first experiment intentionally tested the simplest viable path. Raw Mermaid retrieved relevant authority, so preprocessing was not required for retrieval quality. The later observed-state experiment was introduced to isolate artifact interpretation from judgment after defect tests exposed graph reasoning and expected-state contamination failures.

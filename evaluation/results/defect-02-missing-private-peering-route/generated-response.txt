@@ -1,0 +1,92 @@
+PASS
+
+Severity: N/A
+
+Architecture Evidence:
+- Shared Services VPC uses CIDR 10.10.0.0/16
+- Patient Platform VPC uses CIDR 10.20.0.0/16
+- VPC Peering Connection explicitly routes only approved private subnet CIDRs (10.10.11.0/24 and 10.20.11.0/24)
+- Route tables explicitly define local, peering, and default routes without overlapping CIDR ranges
+
+Applicable Requirement:
+Non-overlapping VPC CIDR ranges and explicit routing for local, peering, and approved internet paths.
+
+Explanation:
+The architecture correctly implements non-overlapping CIDR allocations between the two VPCs with no conflicts. Route tables use explicit entries for local routes, VPC peering routes limited to approved private subnets, and default routes through appropriate gateways. This design supports the requirement to use explicit route-table entries and avoids conflicts that could impede future expansion to Transit Gateway or multi-account architectures. PASS
+
+Severity: N/A
+
+Architecture Evidence:
+- PHI workloads (PHIApp1, PHIApp2) are located in the Private PHI Subnet (10.20.11.0/24)
+- Management workloads (DNS, Logging, Monitoring, Management Services) are located in the Shared Services Private Subnet (10.10.11.0/24)
+- Neither subnet has a direct route to an Internet Gateway
+- Both subnets are restricted to NAT Gateway egress only
+
+Applicable Requirement:
+Keep PHI workloads in private subnets and keep management workloads in private subnets.
+
+Explanation:
+The architecture implements the defense-in-depth requirement by isolating both PHI and management workloads in private subnets without direct internet exposure. PHI workloads access the internet only through a NAT Gateway that permits outbound connections while preventing inbound initiation from untrusted networks. Management workloads similarly use private subnets and are isolated from public ingress routes. PASS
+
+Severity: N/A
+
+Architecture Evidence:
+- Public Ingress Security Group allows only TCP 80 (with HTTPS redirection) and TCP 443 (HTTPS)
+- Public Ingress Security Group explicitly denies SSH and RDP
+- Shared Services Public Subnet NACL policy intent states "Deny public SSH" and "Deny public RDP"
+- Patient Platform Public Subnet NACL policy intent states "No public SSH or RDP"
+- Management Security Group restricts inbound to "Approved management sources and ports only"
+
+Applicable Requirement:
+Prevent direct public SSH or RDP access and restrict management access to approved administrative systems and protocols.
+
+Explanation:
+The architecture enforces least privilege by explicitly denying SSH and RDP access from public internet routes. All management traffic is restricted to approved sources and protocols within private subnets. Public ingress is limited to application-layer protocols (HTTP/HTTPS), and management functions are isolated to private inter-VPC communication with explicit security group policies. PASS
+
+Severity: N/A
+
+Architecture Evidence:
+- VPC Peering Connection annotation states "Only explicitly routed and authorized private traffic is permitted"
+- Shared Services Private Route Table includes route "10.20.11.0/24 → VPC Peering"
+- Patient Platform Private Route Table includes route to peer only when destined for Shared Services private subnet
+- Private management traffic flows through approved security groups and Network ACLs before peering
+- Peering does not independently authorize traffic; security groups and Network ACLs provide additional boundaries
+
+Applicable Requirement:
+Separate public-ingress, management, and PHI workload trust boundaries and enforce least privilege at every network boundary.
+
+Explanation:
+The architecture implements explicit trust boundary separation through layered controls. VPC peering routes only approved private subnet CIDRs, and traffic must pass through both originating and destination security groups and Network ACLs. This approach maintains distinct trust boundaries for public ingress, management, and PHI workloads, ensuring that peering alone does not authorize cross-VPC traffic. PASS
+
+Severity: N/A
+
+Architecture Evidence:
+- Management Security Group defines both inbound and outbound policies
+- Inbound policy specifies "Approved management sources and ports only"
+- Outbound policy specifies "Approved Patient Platform destinations" and "Approved updates and external services"
+- Private Workload Security Group specifies inbound "Approved application traffic" and "Approved management traffic"
+- Private Workload Security Group outbound specifies "Required destinations only"
+- Public Ingress Security Group specifies inbound TCP 80 and TCP 443 only
+- Network ACLs provide additional subnet-level filtering with explicit deny policies
+
+Applicable Requirement:
+Use Security Groups for stateful resource-level controls and use Network ACLs for subnet-level stateless controls.
+
+Explanation:
+The architecture implements defense-in-depth by applying both Security Groups and Network ACLs at appropriate layers. Security Groups enforce stateful, resource-level access control by explicitly allowing only required traffic and implicitly denying all other traffic. Network ACLs provide stateless subnet-level filtering with explicit policy intents for each subnet boundary, creating multiple enforcement points that align with least-privilege requirements. PASS
+
+Severity: N/A
+
+Architecture Evidence:
+- Public Web Endpoint uses HTTPS as the primary protocol
+- Public Ingress Security Group allows "TCP 443 — HTTPS" and includes "HTTP redirects to HTTPS"
+- Outbound management traffic is routed through VPC Peering (private IP addressing)
+- Shared Services outbound traffic uses NAT Gateway for internet access
+- Patient Platform PHI workload outbound traffic uses NAT Gateway for internet access
+- Documentation states "The internet cannot initiate a new session directly to the originating private workload through the NAT Gateway"
+
+Applicable Requirement:
+Encrypt communications in transit and minimize public internet exposure.
+
+Explanation:
+The architecture minimizes public internet exposure by routing all PHI and management workloads through private subnets with no direct internet routes. Cross-VPC management communication uses private IP addressing over VPC peering. Public ingress is limited to encrypted HTTPS traffic with HTTP redirected to HTTPS. Outbound internet access for private workloads is restricted to NAT Gateway, which prevents inbound session initiation and limits internet exposure to approved outbound destinations only.

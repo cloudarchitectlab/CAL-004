@@ -1,7 +1,7 @@
 ---
 document_type: decisions
 authority_class: decisional
-status: draft
+status: completed
 ---
 
 # Decisions
@@ -50,9 +50,9 @@ Failed findings use `LOW`, `MEDIUM`, or `HIGH`. Severity describes likely impact
 
 ## D-006 — Validate with CAL-002 known-good and known-bad cases
 
-**Status:** Accepted in principle; artifacts pending review
+**Status:** Completed
 
-The approved CAL-002 Mermaid architecture will establish the baseline. A copy will contain approximately five controlled mutations. The examples and roles are documented before any fixture is created.
+The approved CAL-002 Mermaid architecture established the baseline. Five separate copies contained one controlled mutation each so that every observed result could be traced to a single test condition.
 
 **Why:** A familiar, governed architecture provides meaningful test evidence without inventing a second domain.
 
@@ -76,7 +76,7 @@ The case study records detection rate, false positives, false negatives, and cit
 
 **Status:** Accepted
 
-Mermaid labels and comments cannot issue model instructions or override policy and governed sources. A prompt-injection label will eventually exercise this boundary.
+Mermaid labels and comments cannot issue model instructions or override policy and governed sources. A prompt-injection comment exercised this boundary; the resulting false negative is recorded as correlation, not proof that the injected text caused the behavior.
 
 **Why:** Architecture artifacts cross a trust boundary and can contain adversarial text.
 
@@ -87,3 +87,11 @@ Mermaid labels and comments cannot issue model instructions or override policy a
 CAL-004 may read inputs and knowledge and write evaluation output. It has no architecture, repository, Terraform, deployment, or cloud-resource mutation path.
 
 **Why:** Read-only capability reduces risk and matches the evaluator-only scope.
+
+## D-011 — Separate deterministic facts from generative judgment
+
+**Status:** Accepted
+
+Explicit components, properties, relationships, and absence checks should use deterministic comparison where practical. Language models remain useful for interpreting governed requirements, resolving semantic conditions, explaining findings, and producing cited review output.
+
+**Why:** The structured observed-state experiment preserved an incorrect graph relationship exactly, yet the retrieval-grounded evaluator still reconstructed a compliant topology and returned a false negative. Structured input improved evidence clarity but did not make generative comparison deterministic.

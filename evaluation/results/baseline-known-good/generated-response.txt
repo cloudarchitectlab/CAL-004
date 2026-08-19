@@ -1,0 +1,61 @@
+CONDITION: VPC CIDR Allocation and Separation
+
+RESULT: PASS
+
+The artifact specifies non-overlapping CIDR ranges: Shared Services VPC uses 10.10.0.0/16 and Patient Platform VPC uses 10.20.0.0/16. These ranges do not overlap and align with the requirement for non-overlapping VPC CIDR ranges to support future expansion to multi-account and multi-AZ architectures. CONDITION: PHI Workloads in Private Subnets
+
+RESULT: PASS
+
+The Private PHI Subnet (10.20.11.0/24) contains the PHI Application Compute instances with no public IP addresses and no direct route to the Internet Gateway. The artifact explicitly documents "No internet-sourced inbound traffic" and routes all outbound traffic through the NAT Gateway, meeting the requirement to keep PHI workloads in private subnets. CONDITION: Management Workloads in Private Subnets
+
+RESULT: PASS
+
+The artifact places Management Compute Instance(s) in the Shared Services Private Subnet (10.10.11.0/24) with no public IP addresses and no direct route to the Internet Gateway. This meets the requirement to keep management workloads in private subnets. CONDITION: Defense in Depth - Layered Security Controls
+
+RESULT: PASS
+
+The architecture implements multiple security layers including: Network ACLs at the subnet level (stateless filtering), Security Groups at the resource level (stateful controls), explicit routing policies, and VPC peering with restricted routes. This demonstrates defense in depth with controls at every network boundary as required. CONDITION: Least Privilege Access - Management Traffic Path
+
+RESULT: PASS
+
+Management traffic from Shared Services uses an explicit path through the VPC Peering connection to Patient Platform private subnets only (10.20.11.0/24). The route table specifies only this CIDR for peering, and Security Groups enforce "approved management sources and ports only," implementing least privilege at multiple boundaries. CONDITION: Least Privilege Access - Public Ingress
+
+RESULT: PASS
+
+The Public Ingress Security Group restricts inbound traffic to TCP 80 (HTTP redirect only) and TCP 443 (HTTPS), explicitly denying SSH and RDP. The Public Subnet NACL policy intent confirms "No public SSH or RDP" and "No public application ingress" outside the HTTP/HTTPS endpoints. CONDITION: Network ACL Implementation - Subnet-Level Stateless Controls
+
+RESULT: PASS
+
+The artifact documents custom Network ACLs for each subnet with explicit policy intents: Shared Services Public, Shared Services Private, Patient Platform Public, and Private PHI subnets each have dedicated Network ACL definitions with specified inbound and outbound traffic rules. CONDITION: Security Group Implementation - Resource-Level Stateful Controls
+
+RESULT: PASS
+
+The artifact defines three Security Groups: Management Security Group (for shared services), Public Ingress Security Group (for public endpoints), and Private Workload Security Group (for PHI applications). Each specifies inbound and outbound policies protecting specific compute resources. CONDITION: Outbound Internet Access Restriction - NAT Gateway Pattern
+
+RESULT: PASS
+
+Both VPCs route outbound private subnet traffic through dedicated NAT Gateways (not directly to IGWs). The documentation explicitly states that the internet cannot initiate new sessions back through the NAT Gateway, and the route tables confirm private subnets use NAT Gateways for default routes rather than Internet Gateways. CONDITION: Explicit Routing - No Default Catch-All Routes from Private Subnets to IGW
+
+RESULT: PASS
+
+The Patient Platform Private Route Table and Shared Services Private Route Table both specify explicit routes: local (10.x.x.x/16), peering (10.x.11.0/24), and default route to NAT Gateway (0.0.0.0/0). Neither private route table has a direct route to the Internet Gateway. CONDITION: VPC Peering Route Restriction
+
+RESULT: PASS
+
+The artifact documents that "only explicitly routed and authorized private traffic is permitted" across the VPC Peering connection. The Shared Services Private Route Table routes 10.20.11.0/24 (Patient Platform private subnet) via peering, and the Patient Platform Private Route Table routes 10.10.11.0/24 (Shared Services private subnet) via peering, implementing the requirement to route only approved private subnet CIDRs. CONDITION: Encryption in Transit - HTTPS Enforcement for Public Ingress
+
+RESULT: PASS
+
+The Public Ingress Security Group specifies TCP 443 for HTTPS and TCP 80 only for HTTP redirect to HTTPS. The artifact documents "HTTPS application entry point" with "HTTP redirects to HTTPS," implementing encryption for public-ingress traffic in transit. CONDITION: Availability Zone Distribution
+
+RESULT: NOT EVALUABLE
+
+The artifact shows Shared Services in us-east-1b and Patient Platform in us-east-1a (single AZ each per phase). The requirements state "One Availability Zone per VPC for the current phase" with support for future multi-AZ expansion. The current phase design is compliant, but this is explicitly scoped as a current-phase limitation. CONDITION: Separation of Trust Boundaries - Public Ingress, Management, and PHI
+
+RESULT: PASS
+
+The architecture clearly separates three trust boundaries: (1) public ingress via Internet Gateway to Public Web Endpoint, (2) management traffic via VPC peering from Shared Services to Patient Platform, and (3) PHI workloads in isolated private subnets. Each uses distinct subnets, route tables, Security Groups, and Network ACLs. CONDITION: Documentation of Policy Intent
+
+RESULT: PASS
+
+Each Network ACL in the artifact explicitly documents policy intent (e.g., "No public SSH or RDP," "Allow approved Patient Platform traffic," "Allow approved HTTP and HTTPS traffic"). This aligns with the requirement to document accepted risks, deferred controls, and known limitations.
