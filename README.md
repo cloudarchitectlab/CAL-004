@@ -6,15 +6,15 @@ status: completed
 
 # CAL-004 — AI Architecture Evaluator
 
-CAL-004 evaluates architecture itself as an input to engineering automation.
+CAL-004 evaluates architecture itself as an input to engineering automation through **grounded architecture conformance evaluation**.
 
-The project evaluates a Mermaid Architecture-as-Code artifact against governed Cloud Architect Lab (CAL) standards and architectural knowledge. Building on the retrieval and knowledge-authority mechanisms established in CAL-003, it identifies architectural conformance and violations and returns structured, cited findings.
+The project evaluates a Mermaid Architecture-as-Code artifact against governed Cloud Architect Lab (CAL) standards and architectural knowledge. Building on the retrieval and knowledge-authority mechanisms established in CAL-003, it identifies architectural conformance and violations and returns structured findings grounded in authoritative evidence and citations.
 
 CAL-004 is an evaluator, not an engineer. It reports what it observes, which governed requirement applies, and why the evidence passes, fails, or cannot be evaluated. It does not modify architecture, recommend remediation, generate code or Terraform, or deploy infrastructure.
 
 ## Project objective
 
-Demonstrate that an AI-assisted evaluator can apply authoritative CAL knowledge to a machine-readable engineering artifact in a repeatable, auditable way.
+Demonstrate that an AI-assisted evaluator can perform grounded architecture conformance evaluation by applying authoritative CAL knowledge to a machine-readable engineering artifact in a repeatable, auditable way.
 
 The completed case study used the approved CAL-002 Mermaid architecture as a known-good baseline and five independently mutated copies as controlled defect inputs. It also tested a two-stage flow that extracted structured observed state before retrieval-grounded evaluation.
 
@@ -55,15 +55,17 @@ Severity expresses the engineering impact of a finding, not model confidence and
 
 ## Validation approach
 
-The completed validation evidence is documented in [docs/validation.md](docs/validation.md).
+The grounded architecture conformance evaluation methodology was tested through controlled defect injection and known-good/known-bad fixtures. The completed validation evidence is documented in [docs/validation.md](docs/validation.md).
 
 In brief:
 
-- the known-good Mermaid file establishes the approved baseline;
-- five copies each contain one deliberate defect;
+- the known-good Mermaid fixture establishes the approved baseline;
+- five known-bad Mermaid fixtures each contain one deliberately injected defect;
 - expected outcomes remain outside the evaluator context;
 - captured output is compared with the controlled mutation and governed CAL sources; and
 - a structured observed-state experiment tests whether separating extraction from judgment improves reliability.
+
+One fixture placed prompt-injection text inside the Mermaid artifact to adversarially test whether the evaluator continued to treat artifact content as untrusted data. Citation review checked that findings were supported by retrieved, authoritative CAL evidence rather than generic model judgment.
 
 The evaluator retrieved relevant authoritative knowledge and produced a clean known-good baseline, but it was not reliable as a deterministic conformance engine.
 
